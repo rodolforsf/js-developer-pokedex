@@ -1,47 +1,77 @@
-const pokemonList = document.getElementById('pokemonList')
-const loadMoreButton = document.getElementById('loadMoreButton')
-
-const maxRecords = 151
-const limit = 10
+const pokemonsList = document.querySelector('#pokemonList')
+const buttonMore = document.querySelector('#btnMore')
+const maxRecords = 151;
+const limit = 4;
 let offset = 0;
 
-function convertPokemonToLi(pokemon) {
-    return `
-        <li class="pokemon ${pokemon.type}">
-            <span class="number">#${pokemon.number}</span>
-            <span class="name">${pokemon.name}</span>
 
-            <div class="detail">
-                <ol class="types">
-                    ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
-                </ol>
+function loadPokemons(offset, limit) {
+  pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
+    const newHtml = pokemons.map((pokemon) =>
 
-                <img src="${pokemon.photo}"
-                     alt="${pokemon.name}">
+      `
+    <div class="flip-card">
+
+      <div class="flip-card-inner">
+
+        <div class="flip-card-front ${pokemon.type}">
+
+        <div class="pokemonInf">
+            <h3 id="pokemonName">${pokemon.name}</h3>
+            <span id="pokemonID">${`#${pokemon.number}`}</span>
+        </div>
+
+        <img src="${pokemon.photo}" alt="${pokemon.name}">
+      
+        <ol class="types">
+          ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
+        </ol>
+
+        </div>
+
+        <div class="flip-card-back ${pokemon.type}">
+        <div class="backInf">
+            <p class="backInfTitle"><strong>Height:</strong></p>
+            <p id="height" class="inf">${pokemon.height}</p>
+        </div>
+        <div class="backInf">
+            <p class="backInfTitle"><strong>Weight:</strong></p>
+            <p id="weight" class="inf">${pokemon.weight}</p>
+        </div>
+        <div class="backInf">
+            <p class="backInfTitle"><strong>Abilites:</strong></p>
+            <div class="inf">
+              ${pokemon.abilities.map((ability) => `<li class="">${ability.replace('-', ' ')}</li>`).join('')}
             </div>
-        </li>
+
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
     `
+    ).join('')
+    pokemonsList.innerHTML += newHtml
+  })
 }
 
-function loadPokemonItens(offset, limit) {
-    pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
-        const newHtml = pokemons.map(convertPokemonToLi).join('')
-        pokemonList.innerHTML += newHtml
-    })
-}
+loadPokemons(offset, limit)
 
-loadPokemonItens(offset, limit)
+buttonMore.addEventListener('click', () => {
 
-loadMoreButton.addEventListener('click', () => {
-    offset += limit
-    const qtdRecordsWithNexPage = offset + limit
+  offset += limit
+  const qtdRecords = offset + limit
 
-    if (qtdRecordsWithNexPage >= maxRecords) {
-        const newLimit = maxRecords - offset
-        loadPokemonItens(offset, newLimit)
+  if (qtdRecords >= maxRecords) {
 
-        loadMoreButton.parentElement.removeChild(loadMoreButton)
-    } else {
-        loadPokemonItens(offset, limit)
-    }
+    const newLimit = maxRecords - offset
+    loadPokemons(offset, newLimit)
+    buttonMore.parentElement.remove()
+
+  } else {
+    loadPokemons(offset, limit)
+  }
+
 })
+
+document.addEventListener("contextmenu", e => e.preventDefault());
